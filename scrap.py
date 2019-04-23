@@ -16,6 +16,9 @@ import steam.webauth as wa
 import matplotlib.pyplot as plt
 
 def getItemsList(url_items = None):
+    '''
+    Loads the list of all the available items
+    '''
     if url_items == None:
         with open(r".\data\pubg.txt", "r") as read_file:
             response = json.load(read_file)
@@ -27,12 +30,14 @@ def getItemsList(url_items = None):
     return response
 
 def getQuerryURL(itemDataBase, country='ES', currency=3, appid = 578080):
-   
-    #payload = {"country" = "ES",      # two letter ISO country code
-    #    "currency"= 3,       # 1 is USD, 3 is EUR, not sure what others are  
-    #    "appid"   = 578080,     # this is the application id.  753 is for steam cards  
-    #    "market_hash_name"  ="322330-Shadows and Hexes" # this is the name of the item in the steam market.  
-    #}
+   '''
+   Builds the correct URL to get the json for the intended item.
+    payload = {"country" = "ES",      # two letter ISO country code
+        "currency"= 3,       # 1 is USD, 3 is EUR, not sure what others are  
+        "appid"   = 578080,     # this is the application id.  753 is for steam cards  
+        "market_hash_name"  ="322330-Shadows and Hexes" # this is the name of the item in the steam market.  
+    }
+    '''
     url_base =r'http://steamcommunity.com/market/pricehistory/'
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
     for item in itemDataBase:
@@ -45,7 +50,6 @@ def getQuerryURL(itemDataBase, country='ES', currency=3, appid = 578080):
     return
 
 def login(username, password):
-    # LOGIN
     user = wa.WebAuth(username, password)
     try:
         session = user.login()
@@ -60,6 +64,9 @@ def login(username, password):
     return session
 
 def fetchData(itemDataBase, n_items = 2):
+    '''
+    Performs a maximum of 20 requests per minute.
+    '''
     time0 = time.time()
     for i in range(n_items):
         time1 = time.time()
@@ -69,7 +76,6 @@ def fetchData(itemDataBase, n_items = 2):
             print('Waiting for [s]: ',60-deltatime )
             time.sleep(60-deltatime)
             time0 = time1
-            
         dato = json.loads(session.get(itemDataBase[i]['url']).text)
         with open(itemDataBase[i]['path'],'w+') as outfile:
             json.dump(dato, outfile, indent=4)
@@ -84,10 +90,7 @@ def loadJSON2pandas(data, item_name):
     del df_volume[item_name]
     del df['volume']
     df_volume.columns = [item_name]
-
-    
     return df, df_volume
-
 
 if __name__ == "__main__":
     itemDataBase = getItemsList() # https://skinsurveys.com/api/pubg
